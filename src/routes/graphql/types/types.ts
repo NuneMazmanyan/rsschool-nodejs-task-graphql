@@ -12,9 +12,10 @@ import {
     ThunkObjMap,
     GraphQLInputFieldConfig,
 } from 'graphql';
+
 import {UUIDType} from './uuid.js';
-import resolvers from '../resolvers.js';
-import Loader from '../loader.js';
+import resolvers from '../queries/resolvers.js';
+import Loader from '../queries/loader.js';
 import {PrismaClient} from '@prisma/client';
 import {GraphQLScalarType, Kind} from 'graphql';
 
@@ -63,24 +64,20 @@ export const UserType: GraphQLObjectType = new GraphQLObjectType({
     }),
 });
 
-
 export const YearType = new GraphQLScalarType({
     name: 'Year',
-
     serialize(value) {
         if (!isValidYear(value)) {
             throw new Error(message.replace('%year%', value as string));
         }
         return value;
     },
-
     parseValue(value) {
         if (!isValidYear(value)) {
             throw new Error(message.replace('%year%', value as string));
         }
         return value;
     },
-
     parseLiteral(ast) {
         if (ast.kind === Kind.INT) {
             const parsedYear = ast.value;

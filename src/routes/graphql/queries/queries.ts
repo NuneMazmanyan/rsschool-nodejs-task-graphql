@@ -13,10 +13,10 @@ import {
     ChangeUserInput,
     ChangeProfileInput,
 } from '../types/types.js';
-import {UUIDType as UUID} from '../types/uuid.js';
-import resolvers from '../resolvers.js';
+import {UUIDType} from '../types/uuid.js';
+import resolvers from './resolvers.js';
 
-const UUIDType = new GraphQLNonNull(UUID);
+const NonNullUUIDType = new GraphQLNonNull(UUIDType);
 
 export const queries = new GraphQLObjectType({
     name: 'Query',

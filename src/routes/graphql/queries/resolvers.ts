@@ -1,15 +1,14 @@
 import { GraphQLResolveInfo, Kind } from 'graphql';
-import { Context } from './types/types.js';
+import { Context } from '../types/types.js';
 import { Prisma, SubscribersOnAuthors, User } from '@prisma/client';
 
 export default {
-    // QUERIES
     getMemberTypes: (_, args, { db }: Context) => {
         return db.memberType.findMany();
     },
 
     getMemberType: (_, { id }: { id: string }, { loader }: Context) => {
-        return loader.member.load(id);
+        return loader.memberLoader.load(id);
     },
 
     getMemberTypeByProfile: (
@@ -17,7 +16,7 @@ export default {
         _args,
         { loader }: Context,
     ) => {
-        return loader.member.load(parent.memberTypeId);
+        return loader.memberLoader.load(parent.memberTypeId);
     },
 
     getPosts: (_, args, { db }: Context) => {
@@ -29,7 +28,7 @@ export default {
     },
 
     getPostsByUserID: (parent: { id: string }, _args, { loader }: Context) => {
-        return loader.userPosts.load(parent.id);
+        return loader.userPostsLoader.load(parent.id);
     },
 
     getUsers: (_, args, { db, loader }: Context, info: GraphQLResolveInfo) => {
@@ -49,7 +48,7 @@ export default {
         users
             .then((users) => {
                 users.map((u) => {
-                    loader.user.prime(u.id, u);
+                    loader.userLoader.prime(u.id, u);
                 });
             })
             .catch(() => {});
@@ -58,23 +57,23 @@ export default {
     },
 
     getUser: (_, { id }: { id: string }, { loader }: Context) => {
-        return loader.user.load(id);
+        return loader.userLoader.load(id);
     },
 
     getUserSubscribedTo: async (parent: User, _args, { loader }: Context) => {
         const parentValue = parent['userSubscribedTo'] as SubscribersOnAuthors[];
 
         return parentValue
-            ? loader.user.loadMany(parentValue.map(s => s.subscriberId))
-            : loader.subscribed.load(parent.id);
+            ? loader.userLoader.loadMany(parentValue.map(s => s.subscriberId))
+            : loader.subscribedLoader.load(parent.id);
     },
 
     getSubscribedToUser: async (parent: { id: string }, _args, { loader }: Context) => {
         const parentValue = parent['subscribedToUser'] as SubscribersOnAuthors[];
 
         return parentValue
-            ? loader.user.loadMany(parentValue.map(s => s.authorId))
-            : loader.subscribers.load(parent.id);
+            ? loader.userLoader.loadMany(parentValue.map(s => s.authorId))
+            : loader.subscribersLoader.load(parent.id);
     },
 
     getProfiles: (_, args, { db }: Context) => {
@@ -86,7 +85,7 @@ export default {
     },
 
     getProfileByUserID: (parent: { id: string }, _args, { loader }: Context) => {
-        return loader.userProfile.load(parent.id);
+        return loader.userProfileLoader.load(parent.id);
     },
 
     // MUTATIONS
