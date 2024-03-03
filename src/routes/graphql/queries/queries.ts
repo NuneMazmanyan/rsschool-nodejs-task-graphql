@@ -1,63 +1,131 @@
-import { GraphQLList, GraphQLNonNull, GraphQLObjectType, GraphQLBoolean } from 'graphql';
-import { UserType, PostType, ProfileType, MemberType } from '../types/types.js';
-import { DB } from '../types/db-type.js';
-import { UUIDType } from '../types/uuid.js';
+import {GraphQLObjectType, GraphQLList, GraphQLNonNull, GraphQLBoolean} from 'graphql';
 
-export const rootQuery = new GraphQLObjectType({
+import {
+    MemberTypeId,
+    MemberType,
+    PostType,
+    ProfileType,
+    UserType,
+    CreatePostInput,
+    CreateUserInput,
+    CreateProfileInput,
+    ChangePostInput,
+    ChangeUserInput,
+    ChangeProfileInput,
+} from '../types/types.js';
+import {UUIDType as UUID} from '../types/uuid.js';
+import resolvers from '../resolvers.js';
+
+const UUIDType = new GraphQLNonNull(UUID);
+
+export const queries = new GraphQLObjectType({
     name: 'Query',
-    fields: () => ({
-        users: {
-            type: new GraphQLList(UserType),
-            resolve: async (_, __, { prisma }: { prisma: DB }) => {
-                return await prisma.user.findMany();
-            },
+    fields: {
+        memberTypes: {
+            type: new GraphQLList(MemberType),
+            resolve: resolvers.getMemberTypes,
+        },
+        memberType: {
+            type: MemberType,
+            args: {id: {type: MemberTypeId}},
+            resolve: resolvers.getMemberType,
         },
         posts: {
             type: new GraphQLList(PostType),
-            resolve: async (_, __, { prisma }: { prisma: DB }) => {
-                return await prisma.post.findMany();
-            },
+            resolve: resolvers.getPosts,
         },
-        profiles: {
-            type: new GraphQLList(ProfileType),
-            resolve: async (_, __, { prisma }: { prisma: DB }) => {
-                return await prisma.profile.findMany();
-            },
+        post: {
+            type: PostType,
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.getPost,
         },
-        memberTypes: {
-            type: new GraphQLList(MemberType),
-            resolve: async (_, __, { prisma }: { prisma: DB }) => {
-                return await prisma.memberType.findMany();
-            },
+        users: {
+            type: new GraphQLList(UserType),
+            resolve: resolvers.getUsers,
         },
         user: {
             type: UserType,
-            args: {
-                userId: {
-                    type: new GraphQLNonNull(UUIDType),
-                },
-            },
-            resolve: async (_, { userId } : { userId: string }, { prisma }: { prisma: DB }) => {
-                console.log('RESOLVER:', userId);
-                return await prisma.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                });
-            },
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.getUser,
         },
-    }),
+        profiles: {
+            type: new GraphQLList(ProfileType),
+            resolve: resolvers.getProfiles,
+        },
+        profile: {
+            type: ProfileType,
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.getProfile,
+        },
+    },
 });
 
-
-export const rootMutation = new GraphQLObjectType({
+export const mutations = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
+        createPost: {
+            type: PostType,
+            args: {dto: {type: CreatePostInput}},
+            resolve: resolvers.createPost,
+        },
         createUser: {
-            type: GraphQLBoolean,
-            resolve: async () => {
-                return true;
+            type: UserType,
+            args: {dto: {type: CreateUserInput}},
+            resolve: resolvers.createUser,
+        },
+        createProfile: {
+            type: ProfileType,
+            args: {dto: {type: CreateProfileInput}},
+            resolve: resolvers.createProfile,
+        },
+        changePost: {
+            type: PostType,
+            args: {
+                id: {type: UUIDType},
+                dto: {type: ChangePostInput},
             },
+            resolve: resolvers.changePost,
+        },
+        changeUser: {
+            type: UserType,
+            args: {
+                id: {type: UUIDType},
+                dto: {type: ChangeUserInput},
+            },
+            resolve: resolvers.changeUser,
+        },
+        changeProfile: {
+            type: ProfileType,
+            args: {
+                id: {type: UUIDType},
+                dto: {type: ChangeProfileInput},
+            },
+            resolve: resolvers.changeProfile,
+        },
+        deletePost: {
+            type: GraphQLBoolean,
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.deletePost,
+        },
+        deleteUser: {
+            type: GraphQLBoolean,
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.deleteUser,
+        },
+        deleteProfile: {
+            type: GraphQLBoolean,
+            args: {id: {type: UUIDType}},
+            resolve: resolvers.deleteProfile,
+        },
+        subscribeTo: {
+            type: UserType,
+            args: {userId: {type: UUIDType}, authorId: {type: UUIDType}},
+            resolve: resolvers.subscribeTo,
+        },
+        unsubscribeFrom: {
+            type: GraphQLBoolean,
+            args: {userId: {type: UUIDType}, authorId: {type: UUIDType}},
+            resolve: resolvers.unsubscribeFrom,
         },
     },
 });
